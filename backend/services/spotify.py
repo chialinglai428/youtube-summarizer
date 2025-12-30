@@ -165,35 +165,28 @@ class SpotifyService:
         return ''
 
     def _download_youtube_podcast(self, url: str) -> tuple:
-        """下載 YouTube Podcast（優先取得字幕）"""
-        import shutil
-        # 自動尋找 yt-dlp：優先系統安裝，其次本機 venv
-        ytdlp_path = shutil.which('yt-dlp')
-        if not ytdlp_path:
-            venv_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            ytdlp_path = os.path.join(venv_path, 'venv', 'bin', 'yt-dlp')
+        """下載 YouTube Podcast（優先取得字幕）- 使用 yt-dlp 函式庫"""
+        import yt_dlp
 
         unique_id = str(uuid.uuid4())[:8]
 
-        import subprocess
-
         # 取得影片資訊
         print("[YouTube] 取得影片資訊...")
-        info_cmd = [ytdlp_path, '--print', '%(title)s', '--print', '%(duration)s', '--no-download', url]
-        info_result = subprocess.run(info_cmd, capture_output=True, text=True, timeout=60)
-        info_lines = info_result.stdout.strip().split('\n')
-        title = info_lines[0] if info_lines else '未知標題'
-        duration = int(info_lines[1]) if len(info_lines) > 1 and info_lines[1].isdigit() else 0
+        ydl_opts = {'quiet': True, 'no_warnings': True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            title = info.get('title', '未知標題')
+            duration = info.get('duration', 0)
 
         metadata = {
             'title': title,
             'url': url,
-            'duration': self._format_duration(duration),
+            'duration': self._format_duration(duration or 0),
         }
 
         # V2: 優先嘗試取得字幕（速度快很多）
         print("[YouTube] 嘗試取得字幕...")
-        subtitle_result = self._get_youtube_subtitles(url, ytdlp_path, unique_id)
+        subtitle_result = self._get_youtube_subtitles(url, unique_id)
 
         if subtitle_result:
             print("[YouTube] 成功取得字幕！跳過音訊下載")
@@ -201,50 +194,30 @@ class SpotifyService:
             metadata['transcript'] = subtitle_result
             return None, metadata  # 不需要音訊檔案
 
-        # 沒有字幕，下載音訊
-        print("[YouTube] 無可用字幕，下載音訊...")
-        output_file = os.path.join(self.temp_dir, f"podcast_{unique_id}.mp3")
+        # 沒有字幕，無法處理（雲端不支援 Whisper）
+        raise Exception("此影片沒有可用字幕，無法處理。請選擇有字幕的 YouTube 影片。")
 
-        download_cmd = [
-            ytdlp_path, '-x', '--audio-format', 'mp3',
-            '-o', output_file, url
-        ]
-        result = subprocess.run(download_cmd, capture_output=True, text=True, timeout=600)
-
-        if not os.path.exists(output_file):
-            # 嘗試找其他格式
-            for ext in ['.m4a', '.webm', '.opus']:
-                alt_file = output_file.replace('.mp3', ext)
-                if os.path.exists(alt_file):
-                    output_file = alt_file
-                    break
-
-        if not os.path.exists(output_file):
-            raise Exception("YouTube 下載失敗")
-
-        metadata['has_subtitles'] = False
-        return output_file, metadata
-
-    def _get_youtube_subtitles(self, url: str, ytdlp_path: str, unique_id: str) -> dict:
-        """嘗試取得 YouTube 字幕"""
-        import subprocess
+    def _get_youtube_subtitles(self, url: str, unique_id: str) -> dict:
+        """嘗試取得 YouTube 字幕 - 使用 yt-dlp 函式庫"""
+        import yt_dlp
 
         subtitle_file = os.path.join(self.temp_dir, f"subtitle_{unique_id}")
 
-        # 嘗試取得字幕（優先中文，其次英文，最後自動生成）
+        # 嘗試取得字幕（優先中文，其次英文）
         for lang in ['zh-TW', 'zh-Hant', 'zh', 'en', 'en-US']:
             try:
-                cmd = [
-                    ytdlp_path,
-                    '--write-sub',
-                    '--write-auto-sub',
-                    '--sub-lang', lang,
-                    '--sub-format', 'vtt',
-                    '--skip-download',
-                    '-o', subtitle_file,
-                    url
-                ]
-                subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                ydl_opts = {
+                    'writesubtitles': True,
+                    'writeautomaticsub': True,
+                    'subtitleslangs': [lang],
+                    'subtitlesformat': 'vtt',
+                    'skip_download': True,
+                    'outtmpl': subtitle_file,
+                    'quiet': True,
+                    'no_warnings': True,
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([url])
 
                 # 檢查是否有字幕檔案
                 for ext in ['.vtt', f'.{lang}.vtt']:
