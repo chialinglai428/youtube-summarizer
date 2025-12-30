@@ -166,8 +166,12 @@ class SpotifyService:
 
     def _download_youtube_podcast(self, url: str) -> tuple:
         """下載 YouTube Podcast（優先取得字幕）"""
-        venv_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        ytdlp_path = os.path.join(venv_path, 'venv', 'bin', 'yt-dlp')
+        import shutil
+        # 自動尋找 yt-dlp：優先系統安裝，其次本機 venv
+        ytdlp_path = shutil.which('yt-dlp')
+        if not ytdlp_path:
+            venv_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            ytdlp_path = os.path.join(venv_path, 'venv', 'bin', 'yt-dlp')
 
         unique_id = str(uuid.uuid4())[:8]
 
