@@ -1,8 +1,16 @@
 """
 語音轉文字服務 (使用 OpenAI Whisper)
+Whisper 為可選依賴，主要使用 YouTube 字幕模式
 """
-import whisper
 import os
+
+# Whisper 為可選依賴
+try:
+    import whisper
+    WHISPER_AVAILABLE = True
+except ImportError:
+    WHISPER_AVAILABLE = False
+    print("[Transcriber] Whisper 未安裝，僅支援字幕模式")
 
 
 class TranscriberService:
@@ -12,17 +20,15 @@ class TranscriberService:
 
         Args:
             model_size: 模型大小 (tiny, base, small, medium, large)
-                       - tiny: 最快，準確度較低
-                       - base: 平衡速度與準確度
-                       - small: 較好的準確度
-                       - medium: 高準確度
-                       - large: 最高準確度，需要較多資源
         """
         self.model = None
         self.model_size = model_size
+        self.available = WHISPER_AVAILABLE
 
     def _load_model(self):
         """延遲載入模型"""
+        if not WHISPER_AVAILABLE:
+            raise RuntimeError("Whisper 未安裝，無法進行語音轉文字。請使用有字幕的 YouTube 影片。")
         if self.model is None:
             print(f"載入 Whisper {self.model_size} 模型...")
             self.model = whisper.load_model(self.model_size)
