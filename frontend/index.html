@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube 長節目摘要</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📺 YouTube 長節目摘要</h1>
+            <p class="subtitle">貼上 YouTube 連結，快速獲得精華文章整理</p>
+        </header>
+
+        <main>
+            <!-- 輸入區塊 -->
+            <section class="input-section">
+                <div class="input-wrapper">
+                    <input
+                        type="url"
+                        id="podcast-url"
+                        placeholder="貼上 YouTube 連結..."
+                        autocomplete="off"
+                    >
+                    <button id="submit-btn" class="btn-primary">
+                        <span class="btn-text">生成摘要</span>
+                        <span class="btn-loading" hidden>處理中...</span>
+                    </button>
+                </div>
+                <p class="input-hint">支援 YouTube 連結</p>
+            </section>
+
+            <!-- 載入狀態 -->
+            <section id="loading-section" class="loading-section" hidden>
+                <div class="loading-spinner"></div>
+                <p id="loading-text">正在處理中...</p>
+                <div class="progress-steps">
+                    <div class="step" id="step-download">
+                        <span class="step-icon">⬇️</span>
+                        <span class="step-text">取得字幕</span>
+                    </div>
+                    <div class="step" id="step-summarize">
+                        <span class="step-icon">✨</span>
+                        <span class="step-text">生成文章</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 結果區塊 -->
+            <section id="result-section" class="result-section" hidden>
+                <div class="result-header">
+                    <h2 id="podcast-title">節目標題</h2>
+                    <div class="result-meta">
+                        <span id="podcast-duration" class="duration"></span>
+                        <span id="source-badge" class="source-badge"></span>
+                    </div>
+                </div>
+
+                <!-- 一句話總結 -->
+                <div id="one-liner-card" class="result-card one-liner-card" hidden>
+                    <p id="one-liner" class="one-liner-text"></p>
+                </div>
+
+                <!-- 精華內容 -->
+                <div id="article-card" class="result-card" hidden>
+                    <h3>📖 精華內容</h3>
+                    <div id="article" class="article-content">
+                        <!-- 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 商業分析師觀點 -->
+                <div id="insights-card" class="result-card insights-card" hidden>
+                    <h3>💡 看點與延伸思考</h3>
+                    <div id="insights" class="insights-content">
+                        <!-- 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 數據亮點 -->
+                <div id="data-highlights-card" class="result-card" hidden>
+                    <h3>📊 數據亮點</h3>
+                    <ul id="data-highlights" class="data-highlights-list">
+                        <!-- 動態生成 -->
+                    </ul>
+                </div>
+
+                <!-- 金句摘錄 -->
+                <div id="quotes-card" class="result-card" hidden>
+                    <h3>💬 金句摘錄</h3>
+                    <div id="quotes" class="quotes-list">
+                        <!-- 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 時間軸 -->
+                <div class="result-card">
+                    <h3>⏱️ 關鍵時間軸</h3>
+                    <div id="timestamps" class="timestamps-list">
+                        <!-- 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 操作按鈕 -->
+                <div class="result-actions">
+                    <button id="copy-btn" class="btn-secondary">複製摘要</button>
+                    <button id="new-btn" class="btn-outline">分析新節目</button>
+                </div>
+            </section>
+
+            <!-- 錯誤訊息 -->
+            <section id="error-section" class="error-section" hidden>
+                <div class="error-content">
+                    <span class="error-icon">⚠️</span>
+                    <p id="error-message">發生錯誤</p>
+                    <button id="retry-btn" class="btn-outline">重試</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by Claude AI</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
