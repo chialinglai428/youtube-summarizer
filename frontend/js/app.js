@@ -5,7 +5,7 @@
 // 自動判斷 API 網址：本機開發用 localhost，正式環境用 Render
 const API_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:5001/api'
-    : 'https://youtube-summarizer-api.onrender.com/api';
+    : 'https://youtube-summarizer-7bks.onrender.com/api';
 
 // DOM 元素
 const elements = {
